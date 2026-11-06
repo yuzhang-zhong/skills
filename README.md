@@ -103,6 +103,7 @@ See [creating and sharing skills](docs/creating-skills.md) for the format and di
 - [CLI reference](docs/commands.md): installation, command examples, and experimental features
 - [Supported agents](docs/agents.md): agent names, skill directories, and compatibility
 - [Creating skills](docs/creating-skills.md): frontmatter, repository layouts, and plugins
+- [Skills in version control](docs/version-control.md): commit the lock file, preserve team-authored skills, and restore after cloning
 - [Troubleshooting and configuration](docs/troubleshooting.md): common problems, environment variables, and telemetry
 - [Programmatic API](docs/api.md): install and manage skills from your own tools with `import { installSkills } from 'skills'`
 
