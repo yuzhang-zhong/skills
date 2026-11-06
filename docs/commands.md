@@ -115,10 +115,13 @@ The lock file records a direct download as `sourceType: "download"` with its URL
 
 | Scope       | Flag      | Location            | Use Case                                      |
 | ----------- | --------- | ------------------- | --------------------------------------------- |
-| **Project** | (default) | `./<agent>/skills/` | Committed with your project, shared with team |
+| **Project** | (default) | `./<agent>/skills/` | Shared with your team through `skills-lock.json` |
 | **Global**  | `-g`      | `~/<agent>/skills/` | Available across all projects                 |
 
 ### Installation Methods
+
+See [skills in version control](version-control.md) for what to commit, ignore, and
+restore after cloning, including how to preserve skills authored in your project.
 
 When installing interactively, you can choose:
 
