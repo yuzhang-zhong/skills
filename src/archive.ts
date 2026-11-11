@@ -268,6 +268,14 @@ function readZip64EntryValues(
 }
 
 export function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits): Map<string, Uint8Array> {
+  return readZipArchiveWithModes(bytes, limits).files;
+}
+
+/** Read file contents and safe installation modes without exposing other archive permissions. */
+export function readZipArchiveWithModes(
+  bytes: Uint8Array,
+  limits: ArchiveLimits
+): { files: Map<string, Uint8Array>; fileModes: Map<string, number> } {
   const buffer = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const endOffset = findEndOfCentralDirectory(buffer);
   if (endOffset < 0) throw diagnostics.SKILLS_ARCHIVE_INVALID({ reason: 'Invalid zip archive' });
@@ -289,6 +297,7 @@ export function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits): Map<st
   }
 
   const files = new Map<string, Uint8Array>();
+  const fileModes = new Map<string, number>();
   let extractedBytes = 0;
   let offset = centralDirectory.offset;
 
@@ -298,6 +307,7 @@ export function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits): Map<st
       throw diagnostics.SKILLS_ARCHIVE_INVALID({ reason: 'Invalid zip central directory entry' });
     }
 
+    const hostSystem = buffer.readUInt16LE(offset + 4) >>> 8;
     const flags = buffer.readUInt16LE(offset + 8);
     const method = buffer.readUInt16LE(offset + 10);
     const expectedChecksum = buffer.readUInt32LE(offset + 16);
@@ -401,11 +411,15 @@ export function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits): Map<st
       throw diagnostics.SKILLS_ARCHIVE_INVALID({ reason: 'Zip entry checksum mismatch' });
     }
     files.set(fileName, new Uint8Array(contents));
+    // Unix and macOS ZIP creators store POSIX permissions in the high attribute word.
+    const executable =
+      (hostSystem === 3 || hostSystem === 19) && ((externalAttributes >>> 16) & 0o111) !== 0;
+    fileModes.set(fileName, executable ? 0o755 : 0o644);
   }
 
   if (offset !== centralDirectory.offset + centralDirectory.size) {
     throw diagnostics.SKILLS_ARCHIVE_INVALID({ reason: 'Invalid zip central directory size' });
   }
 
-  return files;
+  return { files, fileModes };
 }
